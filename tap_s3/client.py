@@ -14,13 +14,11 @@ class S3Stream(Stream):
     """Stream class for S3 streams."""
 
     name = "hello_stream"
-    columns: list[str] = ["column1", "column2"]  # noqa: RUF012
-    s3_client: S3
-    columns: list[str] = []
+    schema_columns: list[str] = []
+    s3_client = None
 
     def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
         """Init CSVStram."""
-        # cache file_config so we dont need to go iterating the config list again later
         super().__init__(*args, **kwargs)
 
     def get_records(
@@ -39,7 +37,8 @@ class S3Stream(Stream):
         Raises:
             NotImplementedError: If the implementation is TODO
         """
-        self.s3_client = S3(self.config)
+        if self.s3_client is None:
+            self.s3_client = S3(self.config)
         for record in self.s3_client.get_records_from_files(self.config):
             self.logger.info(record)
             yield record
@@ -65,12 +64,16 @@ class S3Stream(Stream):
         """
         properties: list[th.Property] = []
         self.primary_keys = ["id"]
-        self.s3_client = S3(self.config)
 
-        columns = self.columns or next(
+        if self.s3_client is None:
+            self.s3_client = S3(self.config)
+
+        schema_columns = self.schema_columns or next(
             self.s3_client.get_records_from_files(self.config),
         )
-        for column, value in columns.items():
+
+        self.s3_client.get_data()
+        for column, value in schema_columns.items():
             if isinstance(value, bool):
                 properties.append(th.Property(column, th.BooleanType()))
             elif isinstance(value, int):
@@ -78,9 +81,8 @@ class S3Stream(Stream):
             elif isinstance(value, float):
                 properties.append(th.Property(column, th.NumberType()))
             else:
-                # Set all types to string
                 properties.append(th.Property(column, th.StringType()))  # noqa: PERF401
 
-        self.columns = columns
+        self.schema_columns = schema_columns
 
         return th.PropertiesList(*properties).to_dict()
