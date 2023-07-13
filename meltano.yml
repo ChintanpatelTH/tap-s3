@@ -1,0 +1,39 @@
+version: 1
+send_anonymous_usage_stats: true
+project_id: "tap-s3"
+default_environment: test
+environments:
+- name: test
+plugins:
+  extractors:
+  - name: "tap-s3"
+    namespace: "tap_s3"
+    pip_url: -e .
+    capabilities:
+    - state
+    - catalog
+    - discover
+    - about
+    - stream-maps
+    config:
+      s3_bucket: "is-dev-tmp-bucket"
+      prefix: "test/yotpo/"
+      aws_profile: "alo-is-dev"
+    settings:
+    # TODO: To configure using Meltano, declare settings and their types here:
+    - name: s3_bucket
+      required: true
+    - name: prefix
+      required: true
+    - name: aws_access_key_id
+      required: false
+    - name: aws_secret_access_key
+      required: false
+    - name: aws_session_token
+      required: false
+    - name: aws_profile
+      required: false
+  loaders:
+  - name: target-jsonl
+    variant: andyh1203
+    pip_url: target-jsonl
