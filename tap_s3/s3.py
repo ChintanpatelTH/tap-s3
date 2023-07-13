@@ -37,10 +37,6 @@ class S3:
         boto3.setup_default_session(**s3_config)
         self.client = boto3.client("s3")
 
-    def get_headers(self) -> list[str]:
-        logger.info("Getting headers")
-        return ["column1", "column2"]
-
     def get_records_from_files(self, config: Dict, sampled: bool = False) -> list[Dict]:
         for file in self.get_input_files(config["prefix"], sampled):
             for record in self.get_file(file["key"]).read().splitlines():

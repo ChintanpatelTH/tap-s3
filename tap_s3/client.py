@@ -64,7 +64,7 @@ class S3Stream(Stream):
         This is evaluated prior to any records being retrieved.
         """
         properties: list[th.Property] = []
-        self.primary_keys = ["column1"]
+        self.primary_keys = ["id"]
         self.s3_client = S3(self.config)
 
         columns = self.columns or next(
